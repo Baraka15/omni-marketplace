@@ -3,20 +3,36 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: BRAX Marketplace API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: products
+    description: Product listing and management
+  - name: categories
+    description: Product categories
+  - name: cart
+    description: Shopping cart operations
+  - name: orders
+    description: Order management
+  - name: rfq
+    description: Request for Quotation (B2B)
+  - name: seller
+    description: Seller dashboard and management
+  - name: marketplace
+    description: Marketplace discovery endpoints
+  - name: payments
+    description: Payment processing
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +40,663 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ── CATEGORIES ──────────────────────────────────────────────────────────────
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List all product categories
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+
+  /categories/with-counts:
+    get:
+      operationId: listCategoriesWithCounts
+      tags: [categories]
+      summary: Categories with product counts
+      responses:
+        "200":
+          description: Categories with product count
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CategoryWithCount"
+
+  # ── PRODUCTS ────────────────────────────────────────────────────────────────
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: List products with filters
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: categoryId
+          schema:
+            type: string
+        - in: query
+          name: minPrice
+          schema:
+            type: number
+        - in: query
+          name: maxPrice
+          schema:
+            type: number
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 24
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+            enum: [price_asc, price_desc, newest, popular]
+      responses:
+        "200":
+          description: Paginated product list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedProducts"
+    post:
+      operationId: createProduct
+      tags: [products]
+      summary: Create a product listing (seller)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductBody"
+      responses:
+        "201":
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  /products/featured:
+    get:
+      operationId: listFeaturedProducts
+      tags: [products]
+      summary: Get featured and trending products
+      responses:
+        "200":
+          description: Featured products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+  /products/{productId}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Get product details
+      parameters:
+        - in: path
+          name: productId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Product detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Not found
+    put:
+      operationId: updateProduct
+      tags: [products]
+      summary: Update product (seller)
+      parameters:
+        - in: path
+          name: productId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProductBody"
+      responses:
+        "200":
+          description: Updated product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+    delete:
+      operationId: deleteProduct
+      tags: [products]
+      summary: Delete product (seller)
+      parameters:
+        - in: path
+          name: productId
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  /products/{productId}/inventory:
+    get:
+      operationId: getProductInventory
+      tags: [products]
+      summary: Get live inventory count for a product
+      parameters:
+        - in: path
+          name: productId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Inventory status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryStatus"
+
+  # ── CART ────────────────────────────────────────────────────────────────────
+  /cart:
+    get:
+      operationId: getCart
+      tags: [cart]
+      summary: Get current user cart
+      responses:
+        "200":
+          description: Cart
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+
+  /cart/items:
+    post:
+      operationId: addCartItem
+      tags: [cart]
+      summary: Add item to cart (with live inventory check)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddCartItemBody"
+      responses:
+        "201":
+          description: Item added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+        "409":
+          description: Insufficient inventory
+
+  /cart/items/{cartItemId}:
+    put:
+      operationId: updateCartItem
+      tags: [cart]
+      summary: Update cart item quantity
+      parameters:
+        - in: path
+          name: cartItemId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCartItemBody"
+      responses:
+        "200":
+          description: Updated cart
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+    delete:
+      operationId: removeCartItem
+      tags: [cart]
+      summary: Remove item from cart
+      parameters:
+        - in: path
+          name: cartItemId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Updated cart
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+
+  # ── ORDERS ──────────────────────────────────────────────────────────────────
+  /orders:
+    get:
+      operationId: listOrders
+      tags: [orders]
+      summary: List user orders
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending, confirmed, processing, shipped, delivered, cancelled]
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+      responses:
+        "200":
+          description: Orders
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedOrders"
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Place an order (checkout)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderBody"
+      responses:
+        "201":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/recent:
+    get:
+      operationId: listRecentOrders
+      tags: [orders]
+      summary: Get recent order activity
+      responses:
+        "200":
+          description: Recent orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+
+  /orders/{orderId}:
+    get:
+      operationId: getOrder
+      tags: [orders]
+      summary: Get order details
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{orderId}/status:
+    put:
+      operationId: updateOrderStatus
+      tags: [orders]
+      summary: Update order status (seller/admin)
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrderStatusBody"
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  # ── PAYMENTS ────────────────────────────────────────────────────────────────
+  /payments/stripe/create-intent:
+    post:
+      operationId: createStripePaymentIntent
+      tags: [payments]
+      summary: Create a Stripe payment intent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateStripeIntentBody"
+      responses:
+        "200":
+          description: Payment intent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StripePaymentIntent"
+
+  /payments/flutterwave/initiate:
+    post:
+      operationId: initiateFlutterwavePayment
+      tags: [payments]
+      summary: Initiate Flutterwave mobile money payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InitiateFlutterwaveBody"
+      responses:
+        "200":
+          description: Payment link
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlutterwavePaymentLink"
+
+  /payments/webhook/stripe:
+    post:
+      operationId: stripeWebhook
+      tags: [payments]
+      summary: Stripe webhook handler
+      responses:
+        "200":
+          description: OK
+
+  # ── RFQ (Request for Quotation) ──────────────────────────────────────────────
+  /rfq:
+    get:
+      operationId: listRfqs
+      tags: [rfq]
+      summary: List RFQs for current user
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending, quoted, accepted, rejected, expired]
+      responses:
+        "200":
+          description: RFQs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Rfq"
+    post:
+      operationId: createRfq
+      tags: [rfq]
+      summary: Create a new RFQ (B2B bulk order request)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRfqBody"
+      responses:
+        "201":
+          description: RFQ created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rfq"
+
+  /rfq/{rfqId}:
+    get:
+      operationId: getRfq
+      tags: [rfq]
+      summary: Get RFQ details
+      parameters:
+        - in: path
+          name: rfqId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: RFQ
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rfq"
+    put:
+      operationId: updateRfq
+      tags: [rfq]
+      summary: Update RFQ (buyer)
+      parameters:
+        - in: path
+          name: rfqId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRfqBody"
+      responses:
+        "200":
+          description: Updated RFQ
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rfq"
+
+  /rfq/{rfqId}/quote:
+    post:
+      operationId: submitRfqQuote
+      tags: [rfq]
+      summary: Seller submits a quote for RFQ
+      parameters:
+        - in: path
+          name: rfqId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitRfqQuoteBody"
+      responses:
+        "200":
+          description: RFQ with quote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rfq"
+
+  /rfq/{rfqId}/accept:
+    post:
+      operationId: acceptRfqQuote
+      tags: [rfq]
+      summary: Buyer accepts RFQ quote
+      parameters:
+        - in: path
+          name: rfqId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Accepted RFQ
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rfq"
+
+  # ── SELLER ──────────────────────────────────────────────────────────────────
+  /seller/profile:
+    get:
+      operationId: getSellerProfile
+      tags: [seller]
+      summary: Get seller profile for current user
+      responses:
+        "200":
+          description: Seller profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SellerProfile"
+    post:
+      operationId: createSellerProfile
+      tags: [seller]
+      summary: Register as a seller
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSellerProfileBody"
+      responses:
+        "201":
+          description: Seller profile created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SellerProfile"
+
+  /seller/products:
+    get:
+      operationId: listSellerProducts
+      tags: [seller]
+      summary: List seller's own products
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [active, inactive, out_of_stock]
+      responses:
+        "200":
+          description: Seller products
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedProducts"
+
+  /seller/orders:
+    get:
+      operationId: listSellerOrders
+      tags: [seller]
+      summary: List orders for seller's products
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+      responses:
+        "200":
+          description: Seller orders
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedOrders"
+
+  /seller/dashboard/stats:
+    get:
+      operationId: getSellerDashboardStats
+      tags: [seller]
+      summary: Real-time seller dashboard stats (revenue, orders, inventory)
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SellerDashboardStats"
+
+  /seller/dashboard/revenue-chart:
+    get:
+      operationId: getSellerRevenueChart
+      tags: [seller]
+      summary: Revenue chart data for last 30 days
+      responses:
+        "200":
+          description: Revenue chart
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RevenueDayData"
+
+  # ── MARKETPLACE ──────────────────────────────────────────────────────────────
+  /marketplace/stats:
+    get:
+      operationId: getMarketplaceStats
+      tags: [marketplace]
+      summary: Platform-wide marketplace statistics
+      responses:
+        "200":
+          description: Marketplace stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MarketplaceStats"
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +704,527 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    Category:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        slug:
+          type: string
+        imageUrl:
+          type: string
+          nullable: true
+      required: [id, name, slug]
+
+    CategoryWithCount:
+      allOf:
+        - $ref: "#/components/schemas/Category"
+        - type: object
+          properties:
+            productCount:
+              type: integer
+          required: [productCount]
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        compareAtPrice:
+          type: number
+          nullable: true
+        imageUrls:
+          type: array
+          items:
+            type: string
+        categoryId:
+          type: string
+        categoryName:
+          type: string
+        sellerId:
+          type: string
+        sellerName:
+          type: string
+        stock:
+          type: integer
+        sku:
+          type: string
+        status:
+          type: string
+          enum: [active, inactive, out_of_stock]
+        rating:
+          type: number
+          nullable: true
+        reviewCount:
+          type: integer
+        isFeatured:
+          type: boolean
+        createdAt:
+          type: string
+      required: [id, name, description, price, imageUrls, categoryId, categoryName, sellerId, sellerName, stock, sku, status, reviewCount, isFeatured, createdAt]
+
+    PaginatedProducts:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        totalPages:
+          type: integer
+      required: [items, total, page, limit, totalPages]
+
+    CreateProductBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        compareAtPrice:
+          type: number
+          nullable: true
+        imageUrls:
+          type: array
+          items:
+            type: string
+        categoryId:
+          type: string
+        stock:
+          type: integer
+        sku:
+          type: string
+      required: [name, description, price, imageUrls, categoryId, stock, sku]
+
+    UpdateProductBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        compareAtPrice:
+          type: number
+          nullable: true
+        imageUrls:
+          type: array
+          items:
+            type: string
+        categoryId:
+          type: string
+        stock:
+          type: integer
+        status:
+          type: string
+          enum: [active, inactive]
+
+    InventoryStatus:
+      type: object
+      properties:
+        productId:
+          type: string
+        stock:
+          type: integer
+        reserved:
+          type: integer
+        available:
+          type: integer
+      required: [productId, stock, reserved, available]
+
+    Cart:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CartItem"
+        subtotal:
+          type: number
+        itemCount:
+          type: integer
+      required: [id, userId, items, subtotal, itemCount]
+
+    CartItem:
+      type: object
+      properties:
+        id:
+          type: string
+        productId:
+          type: string
+        productName:
+          type: string
+        productImageUrl:
+          type: string
+        price:
+          type: number
+        quantity:
+          type: integer
+        availableStock:
+          type: integer
+      required: [id, productId, productName, productImageUrl, price, quantity, availableStock]
+
+    AddCartItemBody:
+      type: object
+      properties:
+        productId:
+          type: string
+        quantity:
+          type: integer
+      required: [productId, quantity]
+
+    UpdateCartItemBody:
+      type: object
+      properties:
+        quantity:
+          type: integer
+      required: [quantity]
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+        buyerId:
+          type: string
+        status:
+          type: string
+          enum: [pending, confirmed, processing, shipped, delivered, cancelled]
+        paymentStatus:
+          type: string
+          enum: [pending, paid, failed, refunded]
+        paymentMethod:
+          type: string
+          enum: [stripe, flutterwave, pending]
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        subtotal:
+          type: number
+        shippingCost:
+          type: number
+        total:
+          type: number
+        shippingAddress:
+          $ref: "#/components/schemas/Address"
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required: [id, buyerId, status, paymentStatus, paymentMethod, items, subtotal, shippingCost, total, shippingAddress, createdAt, updatedAt]
+
+    OrderItem:
+      type: object
+      properties:
+        id:
+          type: string
+        productId:
+          type: string
+        productName:
+          type: string
+        productImageUrl:
+          type: string
+        quantity:
+          type: integer
+        unitPrice:
+          type: number
+        totalPrice:
+          type: number
+      required: [id, productId, productName, productImageUrl, quantity, unitPrice, totalPrice]
+
+    PaginatedOrders:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Order"
+        total:
+          type: integer
+        page:
+          type: integer
+        totalPages:
+          type: integer
+      required: [items, total, page, totalPages]
+
+    CreateOrderBody:
+      type: object
+      properties:
+        shippingAddress:
+          $ref: "#/components/schemas/Address"
+        paymentMethod:
+          type: string
+          enum: [stripe, flutterwave]
+        cartId:
+          type: string
+      required: [shippingAddress, paymentMethod, cartId]
+
+    UpdateOrderStatusBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [confirmed, processing, shipped, delivered, cancelled]
+      required: [status]
+
+    Address:
+      type: object
+      properties:
+        fullName:
+          type: string
+        line1:
+          type: string
+        line2:
+          type: string
+          nullable: true
+        city:
+          type: string
+        state:
+          type: string
+        country:
+          type: string
+        postalCode:
+          type: string
+        phone:
+          type: string
+      required: [fullName, line1, city, state, country, postalCode, phone]
+
+    Rfq:
+      type: object
+      properties:
+        id:
+          type: string
+        buyerId:
+          type: string
+        buyerCompany:
+          type: string
+        productId:
+          type: string
+        productName:
+          type: string
+        quantity:
+          type: integer
+        description:
+          type: string
+        targetPrice:
+          type: number
+          nullable: true
+        status:
+          type: string
+          enum: [pending, quoted, accepted, rejected, expired]
+        quotedPrice:
+          type: number
+          nullable: true
+        quotedNote:
+          type: string
+          nullable: true
+        validUntil:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required: [id, buyerId, buyerCompany, productId, productName, quantity, description, status, createdAt, updatedAt]
+
+    CreateRfqBody:
+      type: object
+      properties:
+        productId:
+          type: string
+        quantity:
+          type: integer
+        description:
+          type: string
+        targetPrice:
+          type: number
+          nullable: true
+        buyerCompany:
+          type: string
+        deliveryDate:
+          type: string
+          nullable: true
+      required: [productId, quantity, description, buyerCompany]
+
+    UpdateRfqBody:
+      type: object
+      properties:
+        quantity:
+          type: integer
+        description:
+          type: string
+        targetPrice:
+          type: number
+          nullable: true
+
+    SubmitRfqQuoteBody:
+      type: object
+      properties:
+        quotedPrice:
+          type: number
+        quotedNote:
+          type: string
+        validUntil:
+          type: string
+      required: [quotedPrice, validUntil]
+
+    SellerProfile:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        storeName:
+          type: string
+        description:
+          type: string
+        logoUrl:
+          type: string
+          nullable: true
+        bannerUrl:
+          type: string
+          nullable: true
+        rating:
+          type: number
+          nullable: true
+        totalSales:
+          type: integer
+        isVerified:
+          type: boolean
+        createdAt:
+          type: string
+      required: [id, userId, storeName, description, totalSales, isVerified, createdAt]
+
+    CreateSellerProfileBody:
+      type: object
+      properties:
+        storeName:
+          type: string
+        description:
+          type: string
+        logoUrl:
+          type: string
+          nullable: true
+      required: [storeName, description]
+
+    SellerDashboardStats:
+      type: object
+      properties:
+        todayRevenue:
+          type: number
+        todayOrders:
+          type: integer
+        activeOrders:
+          type: integer
+        totalProducts:
+          type: integer
+        lowStockProducts:
+          type: integer
+        totalInventoryValue:
+          type: number
+        pendingRfqs:
+          type: integer
+        revenueChange:
+          type: number
+          description: "Percentage change vs yesterday"
+        ordersChange:
+          type: number
+          description: "Percentage change vs yesterday"
+      required: [todayRevenue, todayOrders, activeOrders, totalProducts, lowStockProducts, totalInventoryValue, pendingRfqs, revenueChange, ordersChange]
+
+    RevenueDayData:
+      type: object
+      properties:
+        date:
+          type: string
+        revenue:
+          type: number
+        orders:
+          type: integer
+      required: [date, revenue, orders]
+
+    MarketplaceStats:
+      type: object
+      properties:
+        totalProducts:
+          type: integer
+        totalSellers:
+          type: integer
+        totalOrders:
+          type: integer
+        categoriesCount:
+          type: integer
+      required: [totalProducts, totalSellers, totalOrders, categoriesCount]
+
+    CreateStripeIntentBody:
+      type: object
+      properties:
+        orderId:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+          default: "usd"
+      required: [orderId, amount]
+
+    StripePaymentIntent:
+      type: object
+      properties:
+        clientSecret:
+          type: string
+        paymentIntentId:
+          type: string
+      required: [clientSecret, paymentIntentId]
+
+    InitiateFlutterwaveBody:
+      type: object
+      properties:
+        orderId:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+          default: "NGN"
+        email:
+          type: string
+        phone:
+          type: string
+        name:
+          type: string
+      required: [orderId, amount, currency, email, phone, name]
+
+    FlutterwavePaymentLink:
+      type: object
+      properties:
+        paymentLink:
+          type: string
+        transactionRef:
+          type: string
+      required: [paymentLink, transactionRef]
