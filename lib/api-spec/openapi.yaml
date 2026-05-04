@@ -26,6 +26,8 @@ tags:
     description: Marketplace discovery endpoints
   - name: payments
     description: Payment processing
+  - name: affiliate
+    description: Affiliate marketing program
 
 paths:
   /healthz:
@@ -683,6 +685,157 @@ paths:
                 items:
                   $ref: "#/components/schemas/RevenueDayData"
 
+  # ── AFFILIATE ────────────────────────────────────────────────────────────────
+  /affiliate/register:
+    post:
+      operationId: registerAffiliate
+      tags: [affiliate]
+      summary: Register as affiliate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterAffiliateBody"
+      responses:
+        "201":
+          description: Affiliate registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AffiliateProfile"
+
+  /affiliate/profile:
+    get:
+      operationId: getAffiliateProfile
+      tags: [affiliate]
+      summary: Get affiliate profile
+      responses:
+        "200":
+          description: Affiliate profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AffiliateProfile"
+
+  /affiliate/dashboard:
+    get:
+      operationId: getAffiliateDashboard
+      tags: [affiliate]
+      summary: Affiliate dashboard stats
+      responses:
+        "200":
+          description: Affiliate dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AffiliateDashboard"
+
+  /affiliate/links:
+    get:
+      operationId: listAffiliateLinks
+      tags: [affiliate]
+      summary: List affiliate product links
+      responses:
+        "200":
+          description: Affiliate links
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AffiliateLinkItem"
+    post:
+      operationId: createAffiliateLink
+      tags: [affiliate]
+      summary: Create affiliate link for product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAffiliateLinkBody"
+      responses:
+        "201":
+          description: Affiliate link created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AffiliateLinkItem"
+
+  /affiliate/track/{slug}:
+    get:
+      operationId: trackAffiliateClick
+      tags: [affiliate]
+      summary: Track affiliate click and redirect to product
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Redirect to product page
+
+  # ── PAYMENTS (PayPal) ─────────────────────────────────────────────────────
+  /payments/paypal/create-order:
+    post:
+      operationId: createPaypalOrder
+      tags: [payments]
+      summary: Create PayPal order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePaypalOrderBody"
+      responses:
+        "200":
+          description: PayPal order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaypalOrder"
+
+  /payments/paypal/capture:
+    post:
+      operationId: capturePaypalOrder
+      tags: [payments]
+      summary: Capture PayPal payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CapturePaypalBody"
+      responses:
+        "200":
+          description: Payment captured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaypalCapture"
+
+  /payments/flutterwave/verify:
+    post:
+      operationId: verifyFlutterwavePayment
+      tags: [payments]
+      summary: Verify and confirm Flutterwave payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyFlutterwaveBody"
+      responses:
+        "200":
+          description: Payment verified
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentVerifyResult"
+
   # ── MARKETPLACE ──────────────────────────────────────────────────────────────
   /marketplace/stats:
     get:
@@ -918,7 +1071,7 @@ components:
           enum: [pending, paid, failed, refunded]
         paymentMethod:
           type: string
-          enum: [stripe, flutterwave, pending]
+          enum: [stripe, flutterwave, paypal, pending]
         items:
           type: array
           items:
@@ -978,9 +1131,12 @@ components:
           $ref: "#/components/schemas/Address"
         paymentMethod:
           type: string
-          enum: [stripe, flutterwave]
+          enum: [stripe, flutterwave, paypal]
         cartId:
           type: string
+        affiliateCode:
+          type: string
+          nullable: true
       required: [shippingAddress, paymentMethod, cartId]
 
     UpdateOrderStatusBody:
@@ -1263,3 +1419,154 @@ components:
         transactionRef:
           type: string
       required: [paymentLink, transactionRef]
+
+    VerifyFlutterwaveBody:
+      type: object
+      properties:
+        transactionId:
+          type: string
+        orderId:
+          type: string
+      required: [transactionId, orderId]
+
+    PaymentVerifyResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        status:
+          type: string
+        amount:
+          type: number
+      required: [success, status]
+
+    CreatePaypalOrderBody:
+      type: object
+      properties:
+        orderId:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+          default: "USD"
+      required: [orderId, amount]
+
+    PaypalOrder:
+      type: object
+      properties:
+        paypalOrderId:
+          type: string
+        approvalUrl:
+          type: string
+      required: [paypalOrderId, approvalUrl]
+
+    CapturePaypalBody:
+      type: object
+      properties:
+        paypalOrderId:
+          type: string
+        orderId:
+          type: string
+      required: [paypalOrderId, orderId]
+
+    PaypalCapture:
+      type: object
+      properties:
+        success:
+          type: boolean
+        status:
+          type: string
+      required: [success, status]
+
+    AffiliateProfile:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        code:
+          type: string
+        commissionRate:
+          type: number
+        totalEarnings:
+          type: number
+        totalClicks:
+          type: integer
+        totalConversions:
+          type: integer
+        status:
+          type: string
+        createdAt:
+          type: string
+      required: [id, userId, name, email, code, commissionRate, totalEarnings, totalClicks, totalConversions, status, createdAt]
+
+    RegisterAffiliateBody:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+      required: [name, email]
+
+    AffiliateDashboard:
+      type: object
+      properties:
+        profile:
+          $ref: "#/components/schemas/AffiliateProfile"
+        totalEarnings:
+          type: number
+        totalClicks:
+          type: integer
+        totalConversions:
+          type: integer
+        conversionRate:
+          type: number
+        pendingPayout:
+          type: number
+        recentLinks:
+          type: array
+          items:
+            $ref: "#/components/schemas/AffiliateLinkItem"
+      required: [profile, totalEarnings, totalClicks, totalConversions, conversionRate, pendingPayout, recentLinks]
+
+    AffiliateLinkItem:
+      type: object
+      properties:
+        id:
+          type: string
+        affiliateId:
+          type: string
+        productId:
+          type: string
+        productName:
+          type: string
+        productImageUrl:
+          type: string
+          nullable: true
+        productPrice:
+          type: number
+        slug:
+          type: string
+        clicks:
+          type: integer
+        conversions:
+          type: integer
+        earnings:
+          type: number
+        createdAt:
+          type: string
+      required: [id, affiliateId, productId, productName, productPrice, slug, clicks, conversions, earnings, createdAt]
+
+    CreateAffiliateLinkBody:
+      type: object
+      properties:
+        productId:
+          type: string
+      required: [productId]

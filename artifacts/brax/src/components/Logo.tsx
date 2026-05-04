@@ -16,10 +16,10 @@ export default function Logo({ size = "md", showTagline = false, className = "" 
 
   return (
     <div className={`flex items-center gap-2.5 ${className}`}>
-      <LixarIcon size={s.icon} />
+      <OmniIcon size={s.icon} />
       <div className="flex flex-col leading-none">
-        <span className={`font-bold tracking-tight text-foreground ${s.text}`}>
-          Lixar <span className="text-primary">Gramz</span>
+        <span className={`font-black tracking-tight text-foreground ${s.text}`} style={{ letterSpacing: "-0.02em" }}>
+          <span className="text-primary">OMNI</span>
         </span>
         <span className={`font-medium text-muted-foreground ${s.sub}`}>
           powered by <span className="text-primary font-semibold">BraxAI</span>
@@ -35,10 +35,10 @@ export default function Logo({ size = "md", showTagline = false, className = "" 
 }
 
 export function LogoMark({ size = 32, className = "" }: { size?: number; className?: string }) {
-  return <LixarIcon size={size} className={className} />;
+  return <OmniIcon size={size} className={className} />;
 }
 
-function LixarIcon({ size = 32, className = "" }: { size?: number; className?: string }) {
+function OmniIcon({ size = 32, className = "" }: { size?: number; className?: string }) {
   return (
     <svg
       width={size}
@@ -48,34 +48,16 @@ function LixarIcon({ size = 32, className = "" }: { size?: number; className?: s
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      <rect width="48" height="48" rx="10" fill="hsl(165 100% 39%)" />
-      <path
-        d="M10 24L24 10L38 24L24 38L10 24Z"
-        fill="none"
-        stroke="white"
-        strokeWidth="2.5"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M24 10L38 24L24 38"
-        fill="none"
-        stroke="white"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M18 24L24 18L30 24"
-        fill="white"
-        opacity="0.9"
-      />
-      <path
-        d="M20 26L32 14"
-        stroke="white"
-        strokeWidth="2"
-        strokeLinecap="round"
-        opacity="0.7"
-      />
+      <rect width="48" height="48" rx="12" fill="hsl(165 100% 39%)" />
+      {/* Outer ring */}
+      <circle cx="24" cy="24" r="13" stroke="white" strokeWidth="2.5" fill="none" opacity="0.9" />
+      {/* Inner ring */}
+      <circle cx="24" cy="24" r="7" stroke="white" strokeWidth="2" fill="none" opacity="0.7" />
+      {/* Cross lines */}
+      <line x1="24" y1="7" x2="24" y2="41" stroke="white" strokeWidth="1.5" opacity="0.5" strokeLinecap="round" />
+      <line x1="7" y1="24" x2="41" y2="24" stroke="white" strokeWidth="1.5" opacity="0.5" strokeLinecap="round" />
+      {/* Center dot */}
+      <circle cx="24" cy="24" r="2.5" fill="white" />
     </svg>
   );
 }

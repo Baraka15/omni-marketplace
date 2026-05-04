@@ -18,10 +18,16 @@ import type {
 
 import type {
   AddCartItemBody,
+  AffiliateDashboard,
+  AffiliateLinkItem,
+  AffiliateProfile,
+  CapturePaypalBody,
   Cart,
   Category,
   CategoryWithCount,
+  CreateAffiliateLinkBody,
   CreateOrderBody,
+  CreatePaypalOrderBody,
   CreateProductBody,
   CreateRfqBody,
   CreateSellerProfileBody,
@@ -39,7 +45,11 @@ import type {
   Order,
   PaginatedOrders,
   PaginatedProducts,
+  PaymentVerifyResult,
+  PaypalCapture,
+  PaypalOrder,
   Product,
+  RegisterAffiliateBody,
   RevenueDayData,
   Rfq,
   SellerDashboardStats,
@@ -50,6 +60,7 @@ import type {
   UpdateOrderStatusBody,
   UpdateProductBody,
   UpdateRfqBody,
+  VerifyFlutterwaveBody,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
@@ -2912,6 +2923,750 @@ export function useGetSellerRevenueChart<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Register as affiliate
+ */
+export const getRegisterAffiliateUrl = () => {
+  return `/api/affiliate/register`;
+};
+
+export const registerAffiliate = async (
+  registerAffiliateBody: RegisterAffiliateBody,
+  options?: RequestInit,
+): Promise<AffiliateProfile> => {
+  return customFetch<AffiliateProfile>(getRegisterAffiliateUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(registerAffiliateBody),
+  });
+};
+
+export const getRegisterAffiliateMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof registerAffiliate>>,
+    TError,
+    { data: BodyType<RegisterAffiliateBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof registerAffiliate>>,
+  TError,
+  { data: BodyType<RegisterAffiliateBody> },
+  TContext
+> => {
+  const mutationKey = ["registerAffiliate"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof registerAffiliate>>,
+    { data: BodyType<RegisterAffiliateBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return registerAffiliate(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RegisterAffiliateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof registerAffiliate>>
+>;
+export type RegisterAffiliateMutationBody = BodyType<RegisterAffiliateBody>;
+export type RegisterAffiliateMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Register as affiliate
+ */
+export const useRegisterAffiliate = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof registerAffiliate>>,
+    TError,
+    { data: BodyType<RegisterAffiliateBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof registerAffiliate>>,
+  TError,
+  { data: BodyType<RegisterAffiliateBody> },
+  TContext
+> => {
+  return useMutation(getRegisterAffiliateMutationOptions(options));
+};
+
+/**
+ * @summary Get affiliate profile
+ */
+export const getGetAffiliateProfileUrl = () => {
+  return `/api/affiliate/profile`;
+};
+
+export const getAffiliateProfile = async (
+  options?: RequestInit,
+): Promise<AffiliateProfile> => {
+  return customFetch<AffiliateProfile>(getGetAffiliateProfileUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAffiliateProfileQueryKey = () => {
+  return [`/api/affiliate/profile`] as const;
+};
+
+export const getGetAffiliateProfileQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAffiliateProfile>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAffiliateProfile>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAffiliateProfileQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAffiliateProfile>>
+  > = ({ signal }) => getAffiliateProfile({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAffiliateProfile>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAffiliateProfileQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAffiliateProfile>>
+>;
+export type GetAffiliateProfileQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get affiliate profile
+ */
+
+export function useGetAffiliateProfile<
+  TData = Awaited<ReturnType<typeof getAffiliateProfile>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAffiliateProfile>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAffiliateProfileQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Affiliate dashboard stats
+ */
+export const getGetAffiliateDashboardUrl = () => {
+  return `/api/affiliate/dashboard`;
+};
+
+export const getAffiliateDashboard = async (
+  options?: RequestInit,
+): Promise<AffiliateDashboard> => {
+  return customFetch<AffiliateDashboard>(getGetAffiliateDashboardUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAffiliateDashboardQueryKey = () => {
+  return [`/api/affiliate/dashboard`] as const;
+};
+
+export const getGetAffiliateDashboardQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAffiliateDashboard>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAffiliateDashboard>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAffiliateDashboardQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAffiliateDashboard>>
+  > = ({ signal }) => getAffiliateDashboard({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAffiliateDashboard>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAffiliateDashboardQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAffiliateDashboard>>
+>;
+export type GetAffiliateDashboardQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Affiliate dashboard stats
+ */
+
+export function useGetAffiliateDashboard<
+  TData = Awaited<ReturnType<typeof getAffiliateDashboard>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAffiliateDashboard>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAffiliateDashboardQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary List affiliate product links
+ */
+export const getListAffiliateLinksUrl = () => {
+  return `/api/affiliate/links`;
+};
+
+export const listAffiliateLinks = async (
+  options?: RequestInit,
+): Promise<AffiliateLinkItem[]> => {
+  return customFetch<AffiliateLinkItem[]>(getListAffiliateLinksUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListAffiliateLinksQueryKey = () => {
+  return [`/api/affiliate/links`] as const;
+};
+
+export const getListAffiliateLinksQueryOptions = <
+  TData = Awaited<ReturnType<typeof listAffiliateLinks>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listAffiliateLinks>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListAffiliateLinksQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listAffiliateLinks>>
+  > = ({ signal }) => listAffiliateLinks({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listAffiliateLinks>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListAffiliateLinksQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listAffiliateLinks>>
+>;
+export type ListAffiliateLinksQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List affiliate product links
+ */
+
+export function useListAffiliateLinks<
+  TData = Awaited<ReturnType<typeof listAffiliateLinks>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listAffiliateLinks>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListAffiliateLinksQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create affiliate link for product
+ */
+export const getCreateAffiliateLinkUrl = () => {
+  return `/api/affiliate/links`;
+};
+
+export const createAffiliateLink = async (
+  createAffiliateLinkBody: CreateAffiliateLinkBody,
+  options?: RequestInit,
+): Promise<AffiliateLinkItem> => {
+  return customFetch<AffiliateLinkItem>(getCreateAffiliateLinkUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createAffiliateLinkBody),
+  });
+};
+
+export const getCreateAffiliateLinkMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAffiliateLink>>,
+    TError,
+    { data: BodyType<CreateAffiliateLinkBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createAffiliateLink>>,
+  TError,
+  { data: BodyType<CreateAffiliateLinkBody> },
+  TContext
+> => {
+  const mutationKey = ["createAffiliateLink"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createAffiliateLink>>,
+    { data: BodyType<CreateAffiliateLinkBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createAffiliateLink(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateAffiliateLinkMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createAffiliateLink>>
+>;
+export type CreateAffiliateLinkMutationBody = BodyType<CreateAffiliateLinkBody>;
+export type CreateAffiliateLinkMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create affiliate link for product
+ */
+export const useCreateAffiliateLink = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAffiliateLink>>,
+    TError,
+    { data: BodyType<CreateAffiliateLinkBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createAffiliateLink>>,
+  TError,
+  { data: BodyType<CreateAffiliateLinkBody> },
+  TContext
+> => {
+  return useMutation(getCreateAffiliateLinkMutationOptions(options));
+};
+
+/**
+ * @summary Track affiliate click and redirect to product
+ */
+export const getTrackAffiliateClickUrl = (slug: string) => {
+  return `/api/affiliate/track/${slug}`;
+};
+
+export const trackAffiliateClick = async (
+  slug: string,
+  options?: RequestInit,
+): Promise<unknown> => {
+  return customFetch<unknown>(getTrackAffiliateClickUrl(slug), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getTrackAffiliateClickQueryKey = (slug: string) => {
+  return [`/api/affiliate/track/${slug}`] as const;
+};
+
+export const getTrackAffiliateClickQueryOptions = <
+  TData = Awaited<ReturnType<typeof trackAffiliateClick>>,
+  TError = ErrorType<void>,
+>(
+  slug: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof trackAffiliateClick>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getTrackAffiliateClickQueryKey(slug);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof trackAffiliateClick>>
+  > = ({ signal }) => trackAffiliateClick(slug, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!slug,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof trackAffiliateClick>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type TrackAffiliateClickQueryResult = NonNullable<
+  Awaited<ReturnType<typeof trackAffiliateClick>>
+>;
+export type TrackAffiliateClickQueryError = ErrorType<void>;
+
+/**
+ * @summary Track affiliate click and redirect to product
+ */
+
+export function useTrackAffiliateClick<
+  TData = Awaited<ReturnType<typeof trackAffiliateClick>>,
+  TError = ErrorType<void>,
+>(
+  slug: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof trackAffiliateClick>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getTrackAffiliateClickQueryOptions(slug, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create PayPal order
+ */
+export const getCreatePaypalOrderUrl = () => {
+  return `/api/payments/paypal/create-order`;
+};
+
+export const createPaypalOrder = async (
+  createPaypalOrderBody: CreatePaypalOrderBody,
+  options?: RequestInit,
+): Promise<PaypalOrder> => {
+  return customFetch<PaypalOrder>(getCreatePaypalOrderUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createPaypalOrderBody),
+  });
+};
+
+export const getCreatePaypalOrderMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createPaypalOrder>>,
+    TError,
+    { data: BodyType<CreatePaypalOrderBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createPaypalOrder>>,
+  TError,
+  { data: BodyType<CreatePaypalOrderBody> },
+  TContext
+> => {
+  const mutationKey = ["createPaypalOrder"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createPaypalOrder>>,
+    { data: BodyType<CreatePaypalOrderBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createPaypalOrder(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreatePaypalOrderMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createPaypalOrder>>
+>;
+export type CreatePaypalOrderMutationBody = BodyType<CreatePaypalOrderBody>;
+export type CreatePaypalOrderMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create PayPal order
+ */
+export const useCreatePaypalOrder = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createPaypalOrder>>,
+    TError,
+    { data: BodyType<CreatePaypalOrderBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createPaypalOrder>>,
+  TError,
+  { data: BodyType<CreatePaypalOrderBody> },
+  TContext
+> => {
+  return useMutation(getCreatePaypalOrderMutationOptions(options));
+};
+
+/**
+ * @summary Capture PayPal payment
+ */
+export const getCapturePaypalOrderUrl = () => {
+  return `/api/payments/paypal/capture`;
+};
+
+export const capturePaypalOrder = async (
+  capturePaypalBody: CapturePaypalBody,
+  options?: RequestInit,
+): Promise<PaypalCapture> => {
+  return customFetch<PaypalCapture>(getCapturePaypalOrderUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(capturePaypalBody),
+  });
+};
+
+export const getCapturePaypalOrderMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof capturePaypalOrder>>,
+    TError,
+    { data: BodyType<CapturePaypalBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof capturePaypalOrder>>,
+  TError,
+  { data: BodyType<CapturePaypalBody> },
+  TContext
+> => {
+  const mutationKey = ["capturePaypalOrder"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof capturePaypalOrder>>,
+    { data: BodyType<CapturePaypalBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return capturePaypalOrder(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CapturePaypalOrderMutationResult = NonNullable<
+  Awaited<ReturnType<typeof capturePaypalOrder>>
+>;
+export type CapturePaypalOrderMutationBody = BodyType<CapturePaypalBody>;
+export type CapturePaypalOrderMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Capture PayPal payment
+ */
+export const useCapturePaypalOrder = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof capturePaypalOrder>>,
+    TError,
+    { data: BodyType<CapturePaypalBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof capturePaypalOrder>>,
+  TError,
+  { data: BodyType<CapturePaypalBody> },
+  TContext
+> => {
+  return useMutation(getCapturePaypalOrderMutationOptions(options));
+};
+
+/**
+ * @summary Verify and confirm Flutterwave payment
+ */
+export const getVerifyFlutterwavePaymentUrl = () => {
+  return `/api/payments/flutterwave/verify`;
+};
+
+export const verifyFlutterwavePayment = async (
+  verifyFlutterwaveBody: VerifyFlutterwaveBody,
+  options?: RequestInit,
+): Promise<PaymentVerifyResult> => {
+  return customFetch<PaymentVerifyResult>(getVerifyFlutterwavePaymentUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(verifyFlutterwaveBody),
+  });
+};
+
+export const getVerifyFlutterwavePaymentMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof verifyFlutterwavePayment>>,
+    TError,
+    { data: BodyType<VerifyFlutterwaveBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof verifyFlutterwavePayment>>,
+  TError,
+  { data: BodyType<VerifyFlutterwaveBody> },
+  TContext
+> => {
+  const mutationKey = ["verifyFlutterwavePayment"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof verifyFlutterwavePayment>>,
+    { data: BodyType<VerifyFlutterwaveBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return verifyFlutterwavePayment(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type VerifyFlutterwavePaymentMutationResult = NonNullable<
+  Awaited<ReturnType<typeof verifyFlutterwavePayment>>
+>;
+export type VerifyFlutterwavePaymentMutationBody =
+  BodyType<VerifyFlutterwaveBody>;
+export type VerifyFlutterwavePaymentMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Verify and confirm Flutterwave payment
+ */
+export const useVerifyFlutterwavePayment = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof verifyFlutterwavePayment>>,
+    TError,
+    { data: BodyType<VerifyFlutterwaveBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof verifyFlutterwavePayment>>,
+  TError,
+  { data: BodyType<VerifyFlutterwaveBody> },
+  TContext
+> => {
+  return useMutation(getVerifyFlutterwavePaymentMutationOptions(options));
+};
 
 /**
  * @summary Platform-wide marketplace statistics

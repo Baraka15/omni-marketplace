@@ -5,7 +5,7 @@ import { productsTable } from "./products";
 
 export const orderStatusEnum = pgEnum("order_status", ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"]);
 export const paymentStatusEnum = pgEnum("payment_status", ["pending", "paid", "failed", "refunded"]);
-export const paymentMethodEnum = pgEnum("payment_method", ["stripe", "flutterwave", "pending"]);
+export const paymentMethodEnum = pgEnum("payment_method", ["stripe", "flutterwave", "paypal", "pending"]);
 
 export const ordersTable = pgTable("orders", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -19,6 +19,8 @@ export const ordersTable = pgTable("orders", {
   shippingAddress: jsonb("shipping_address").notNull(),
   stripePaymentIntentId: text("stripe_payment_intent_id"),
   flutterwaveRef: text("flutterwave_ref"),
+  paypalOrderId: text("paypal_order_id"),
+  affiliateLinkId: text("affiliate_link_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

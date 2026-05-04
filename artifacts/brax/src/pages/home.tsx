@@ -45,7 +45,7 @@ export default function Home() {
               Scale Africa.
             </h1>
             <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
-              The professional marketplace where ambitious traders buy, sell, and grow. Real-time inventory, B2B sourcing, and instant execution.
+              The all-in-one intelligent marketplace — buy, sell, source B2B, and earn as an affiliate. Real-time inventory, instant payments, and AI-powered execution.
             </p>
 
             <div className="max-w-xl mx-auto mb-8">

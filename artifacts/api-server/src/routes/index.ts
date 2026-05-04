@@ -8,6 +8,7 @@ import sellerRouter from "./seller";
 import rfqRouter from "./rfq";
 import paymentsRouter from "./payments";
 import marketplaceRouter from "./marketplace";
+import affiliatesRouter from "./affiliates";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use(sellerRouter);
 router.use(rfqRouter);
 router.use(paymentsRouter);
 router.use(marketplaceRouter);
+router.use(affiliatesRouter);
 
 export default router;

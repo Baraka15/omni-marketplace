@@ -19,6 +19,7 @@ import SellerDashboard from "@/pages/seller/dashboard";
 import SellerProductsPage, { NewProductPage, EditProductPage } from "@/pages/seller/products";
 import SellerOrdersPage from "@/pages/seller/orders";
 import StorefrontPage from "@/pages/storefront";
+import AffiliateDashboard from "@/pages/affiliate/dashboard";
 
 const queryClient = new QueryClient();
 
@@ -85,7 +86,7 @@ function AuthLayout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <div>
-            <h2 className="text-2xl font-bold">Lixar <span className="text-primary">Gramz</span></h2>
+            <h2 className="text-2xl font-bold"><span className="text-primary">OMNI</span></h2>
             <p className="text-xs text-muted-foreground mt-1">powered by BraxAI</p>
           </div>
           <p className="text-muted-foreground text-sm leading-relaxed">
@@ -185,6 +186,7 @@ function ClerkProviderWithRoutes() {
             </Route>
             <Route path="/seller/orders" component={SellerOrdersPage} />
             <Route path="/store/:slug" component={StorefrontPage} />
+            <Route path="/affiliate" component={AffiliateDashboard} />
             <Route path="/sign-in/*?" component={SignInPage} />
             <Route path="/sign-up/*?" component={SignUpPage} />
             <Route component={NotFound} />

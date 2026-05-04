@@ -147,6 +147,7 @@ export type OrderPaymentMethod =
 export const OrderPaymentMethod = {
   stripe: "stripe",
   flutterwave: "flutterwave",
+  paypal: "paypal",
   pending: "pending",
 } as const;
 
@@ -199,12 +200,14 @@ export type CreateOrderBodyPaymentMethod =
 export const CreateOrderBodyPaymentMethod = {
   stripe: "stripe",
   flutterwave: "flutterwave",
+  paypal: "paypal",
 } as const;
 
 export interface CreateOrderBody {
   shippingAddress: Address;
   paymentMethod: CreateOrderBodyPaymentMethod;
   cartId: string;
+  affiliateCode?: string | null;
 }
 
 export type UpdateOrderStatusBodyStatus =
@@ -352,6 +355,85 @@ export interface InitiateFlutterwaveBody {
 export interface FlutterwavePaymentLink {
   paymentLink: string;
   transactionRef: string;
+}
+
+export interface VerifyFlutterwaveBody {
+  transactionId: string;
+  orderId: string;
+}
+
+export interface PaymentVerifyResult {
+  success: boolean;
+  status: string;
+  amount?: number;
+}
+
+export interface CreatePaypalOrderBody {
+  orderId: string;
+  amount: number;
+  currency?: string;
+}
+
+export interface PaypalOrder {
+  paypalOrderId: string;
+  approvalUrl: string;
+}
+
+export interface CapturePaypalBody {
+  paypalOrderId: string;
+  orderId: string;
+}
+
+export interface PaypalCapture {
+  success: boolean;
+  status: string;
+}
+
+export interface AffiliateProfile {
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  code: string;
+  commissionRate: number;
+  totalEarnings: number;
+  totalClicks: number;
+  totalConversions: number;
+  status: string;
+  createdAt: string;
+}
+
+export interface RegisterAffiliateBody {
+  name: string;
+  email: string;
+}
+
+export interface AffiliateLinkItem {
+  id: string;
+  affiliateId: string;
+  productId: string;
+  productName: string;
+  productImageUrl?: string | null;
+  productPrice: number;
+  slug: string;
+  clicks: number;
+  conversions: number;
+  earnings: number;
+  createdAt: string;
+}
+
+export interface AffiliateDashboard {
+  profile: AffiliateProfile;
+  totalEarnings: number;
+  totalClicks: number;
+  totalConversions: number;
+  conversionRate: number;
+  pendingPayout: number;
+  recentLinks: AffiliateLinkItem[];
+}
+
+export interface CreateAffiliateLinkBody {
+  productId: string;
 }
 
 export type ListProductsParams = {

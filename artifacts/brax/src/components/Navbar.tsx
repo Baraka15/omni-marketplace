@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useGetCart } from "@workspace/api-client-react";
-import { ShoppingCart, User, Package, LayoutDashboard, FileText, Plus, Store } from "lucide-react";
+import { ShoppingCart, Package, LayoutDashboard, FileText, Plus, Store, Link2 } from "lucide-react";
 import { useUser, SignOutButton } from "@clerk/react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -25,6 +25,9 @@ export default function Navbar() {
             <>
               <Link href="/rfq" className="text-muted-foreground hover:text-foreground transition-colors">RFQs</Link>
               <Link href="/seller/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">Sell</Link>
+              <Link href="/affiliate" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+                <Link2 className="h-3.5 w-3.5" />Affiliate
+              </Link>
             </>
           )}
         </nav>
@@ -85,6 +88,12 @@ export default function Navbar() {
                 <DropdownMenuItem onClick={() => setLocation("/seller/products")} className="cursor-pointer">
                   <Store className="mr-2 h-4 w-4" />
                   <span>My Storefront</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="text-xs uppercase text-muted-foreground tracking-wider">Affiliate</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => setLocation("/affiliate")} className="cursor-pointer">
+                  <Link2 className="mr-2 h-4 w-4" />
+                  <span>Affiliate Dashboard</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>

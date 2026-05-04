@@ -330,7 +330,7 @@ export const ListOrdersResponse = zod.object({
         "cancelled",
       ]),
       paymentStatus: zod.enum(["pending", "paid", "failed", "refunded"]),
-      paymentMethod: zod.enum(["stripe", "flutterwave", "pending"]),
+      paymentMethod: zod.enum(["stripe", "flutterwave", "paypal", "pending"]),
       items: zod.array(
         zod.object({
           id: zod.string(),
@@ -378,8 +378,9 @@ export const CreateOrderBody = zod.object({
     postalCode: zod.string(),
     phone: zod.string(),
   }),
-  paymentMethod: zod.enum(["stripe", "flutterwave"]),
+  paymentMethod: zod.enum(["stripe", "flutterwave", "paypal"]),
   cartId: zod.string(),
+  affiliateCode: zod.string().nullish(),
 });
 
 /**
@@ -397,7 +398,7 @@ export const ListRecentOrdersResponseItem = zod.object({
     "cancelled",
   ]),
   paymentStatus: zod.enum(["pending", "paid", "failed", "refunded"]),
-  paymentMethod: zod.enum(["stripe", "flutterwave", "pending"]),
+  paymentMethod: zod.enum(["stripe", "flutterwave", "paypal", "pending"]),
   items: zod.array(
     zod.object({
       id: zod.string(),
@@ -446,7 +447,7 @@ export const GetOrderResponse = zod.object({
     "cancelled",
   ]),
   paymentStatus: zod.enum(["pending", "paid", "failed", "refunded"]),
-  paymentMethod: zod.enum(["stripe", "flutterwave", "pending"]),
+  paymentMethod: zod.enum(["stripe", "flutterwave", "paypal", "pending"]),
   items: zod.array(
     zod.object({
       id: zod.string(),
@@ -504,7 +505,7 @@ export const UpdateOrderStatusResponse = zod.object({
     "cancelled",
   ]),
   paymentStatus: zod.enum(["pending", "paid", "failed", "refunded"]),
-  paymentMethod: zod.enum(["stripe", "flutterwave", "pending"]),
+  paymentMethod: zod.enum(["stripe", "flutterwave", "paypal", "pending"]),
   items: zod.array(
     zod.object({
       id: zod.string(),
@@ -807,7 +808,7 @@ export const ListSellerOrdersResponse = zod.object({
         "cancelled",
       ]),
       paymentStatus: zod.enum(["pending", "paid", "failed", "refunded"]),
-      paymentMethod: zod.enum(["stripe", "flutterwave", "pending"]),
+      paymentMethod: zod.enum(["stripe", "flutterwave", "paypal", "pending"]),
       items: zod.array(
         zod.object({
           id: zod.string(),
@@ -875,6 +876,147 @@ export const GetSellerRevenueChartResponseItem = zod.object({
 export const GetSellerRevenueChartResponse = zod.array(
   GetSellerRevenueChartResponseItem,
 );
+
+/**
+ * @summary Register as affiliate
+ */
+export const RegisterAffiliateBody = zod.object({
+  name: zod.string(),
+  email: zod.string(),
+});
+
+/**
+ * @summary Get affiliate profile
+ */
+export const GetAffiliateProfileResponse = zod.object({
+  id: zod.string(),
+  userId: zod.string(),
+  name: zod.string(),
+  email: zod.string(),
+  code: zod.string(),
+  commissionRate: zod.number(),
+  totalEarnings: zod.number(),
+  totalClicks: zod.number(),
+  totalConversions: zod.number(),
+  status: zod.string(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary Affiliate dashboard stats
+ */
+export const GetAffiliateDashboardResponse = zod.object({
+  profile: zod.object({
+    id: zod.string(),
+    userId: zod.string(),
+    name: zod.string(),
+    email: zod.string(),
+    code: zod.string(),
+    commissionRate: zod.number(),
+    totalEarnings: zod.number(),
+    totalClicks: zod.number(),
+    totalConversions: zod.number(),
+    status: zod.string(),
+    createdAt: zod.string(),
+  }),
+  totalEarnings: zod.number(),
+  totalClicks: zod.number(),
+  totalConversions: zod.number(),
+  conversionRate: zod.number(),
+  pendingPayout: zod.number(),
+  recentLinks: zod.array(
+    zod.object({
+      id: zod.string(),
+      affiliateId: zod.string(),
+      productId: zod.string(),
+      productName: zod.string(),
+      productImageUrl: zod.string().nullish(),
+      productPrice: zod.number(),
+      slug: zod.string(),
+      clicks: zod.number(),
+      conversions: zod.number(),
+      earnings: zod.number(),
+      createdAt: zod.string(),
+    }),
+  ),
+});
+
+/**
+ * @summary List affiliate product links
+ */
+export const ListAffiliateLinksResponseItem = zod.object({
+  id: zod.string(),
+  affiliateId: zod.string(),
+  productId: zod.string(),
+  productName: zod.string(),
+  productImageUrl: zod.string().nullish(),
+  productPrice: zod.number(),
+  slug: zod.string(),
+  clicks: zod.number(),
+  conversions: zod.number(),
+  earnings: zod.number(),
+  createdAt: zod.string(),
+});
+export const ListAffiliateLinksResponse = zod.array(
+  ListAffiliateLinksResponseItem,
+);
+
+/**
+ * @summary Create affiliate link for product
+ */
+export const CreateAffiliateLinkBody = zod.object({
+  productId: zod.string(),
+});
+
+/**
+ * @summary Track affiliate click and redirect to product
+ */
+export const TrackAffiliateClickParams = zod.object({
+  slug: zod.coerce.string(),
+});
+
+/**
+ * @summary Create PayPal order
+ */
+export const createPaypalOrderBodyCurrencyDefault = `USD`;
+
+export const CreatePaypalOrderBody = zod.object({
+  orderId: zod.string(),
+  amount: zod.number(),
+  currency: zod.string().default(createPaypalOrderBodyCurrencyDefault),
+});
+
+export const CreatePaypalOrderResponse = zod.object({
+  paypalOrderId: zod.string(),
+  approvalUrl: zod.string(),
+});
+
+/**
+ * @summary Capture PayPal payment
+ */
+export const CapturePaypalOrderBody = zod.object({
+  paypalOrderId: zod.string(),
+  orderId: zod.string(),
+});
+
+export const CapturePaypalOrderResponse = zod.object({
+  success: zod.boolean(),
+  status: zod.string(),
+});
+
+/**
+ * @summary Verify and confirm Flutterwave payment
+ */
+export const VerifyFlutterwavePaymentBody = zod.object({
+  transactionId: zod.string(),
+  orderId: zod.string(),
+});
+
+export const VerifyFlutterwavePaymentResponse = zod.object({
+  success: zod.boolean(),
+  status: zod.string(),
+  amount: zod.number().optional(),
+});
 
 /**
  * @summary Platform-wide marketplace statistics
