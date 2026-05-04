@@ -1101,12 +1101,21 @@ components:
           type: string
         storeName:
           type: string
+        storeSlug:
+          type: string
+          nullable: true
         description:
           type: string
         logoUrl:
           type: string
           nullable: true
         bannerUrl:
+          type: string
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+        whatsappNumber:
           type: string
           nullable: true
         rating:
@@ -1130,6 +1139,12 @@ components:
         logoUrl:
           type: string
           nullable: true
+        currency:
+          type: string
+          nullable: true
+        whatsappNumber:
+          type: string
+          nullable: true
       required: [storeName, description]
 
     SellerDashboardStats:
@@ -1138,6 +1153,10 @@ components:
         todayRevenue:
           type: number
         todayOrders:
+          type: integer
+        sevenDayRevenue:
+          type: number
+        sevenDayOrders:
           type: integer
         activeOrders:
           type: integer
@@ -1149,13 +1168,29 @@ components:
           type: number
         pendingRfqs:
           type: integer
+        receivables:
+          type: number
+        b2bInTransit:
+          type: integer
         revenueChange:
           type: number
           description: "Percentage change vs yesterday"
         ordersChange:
           type: number
           description: "Percentage change vs yesterday"
-      required: [todayRevenue, todayOrders, activeOrders, totalProducts, lowStockProducts, totalInventoryValue, pendingRfqs, revenueChange, ordersChange]
+        currency:
+          type: string
+          nullable: true
+        storeSlug:
+          type: string
+          nullable: true
+        storeName:
+          type: string
+          nullable: true
+        whatsappNumber:
+          type: string
+          nullable: true
+      required: [todayRevenue, todayOrders, sevenDayRevenue, sevenDayOrders, activeOrders, totalProducts, lowStockProducts, totalInventoryValue, pendingRfqs, receivables, b2bInTransit, revenueChange, ordersChange]
 
     RevenueDayData:
       type: object

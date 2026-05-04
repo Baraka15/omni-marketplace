@@ -274,9 +274,12 @@ export interface SellerProfile {
   id: string;
   userId: string;
   storeName: string;
+  storeSlug?: string | null;
   description: string;
   logoUrl?: string | null;
   bannerUrl?: string | null;
+  currency?: string | null;
+  whatsappNumber?: string | null;
   rating?: number | null;
   totalSales: number;
   isVerified: boolean;
@@ -287,20 +290,30 @@ export interface CreateSellerProfileBody {
   storeName: string;
   description: string;
   logoUrl?: string | null;
+  currency?: string | null;
+  whatsappNumber?: string | null;
 }
 
 export interface SellerDashboardStats {
   todayRevenue: number;
   todayOrders: number;
+  sevenDayRevenue: number;
+  sevenDayOrders: number;
   activeOrders: number;
   totalProducts: number;
   lowStockProducts: number;
   totalInventoryValue: number;
   pendingRfqs: number;
+  receivables: number;
+  b2bInTransit: number;
   /** Percentage change vs yesterday */
   revenueChange: number;
   /** Percentage change vs yesterday */
   ordersChange: number;
+  currency?: string | null;
+  storeSlug?: string | null;
+  storeName?: string | null;
+  whatsappNumber?: string | null;
 }
 
 export interface RevenueDayData {

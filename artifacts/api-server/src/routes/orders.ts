@@ -94,7 +94,7 @@ router.get("/orders/recent", requireAuth, async (req, res) => {
 });
 
 router.get("/orders/:orderId", requireAuth, async (req, res) => {
-  const { orderId } = req.params;
+  const orderId = req.params.orderId as string;
   const order = await buildOrderResponse(orderId);
   if (!order) {
     res.status(404).json({ error: "Order not found" });
@@ -184,7 +184,7 @@ router.post("/orders", requireAuth, async (req, res) => {
 });
 
 router.put("/orders/:orderId/status", requireAuth, async (req, res) => {
-  const { orderId } = req.params;
+  const orderId = req.params.orderId as string;
   const { status } = req.body;
 
   await db

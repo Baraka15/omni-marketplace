@@ -76,7 +76,7 @@ router.post("/rfq", requireAuth, async (req, res) => {
 });
 
 router.get("/rfq/:rfqId", requireAuth, async (req, res) => {
-  const { rfqId } = req.params;
+  const rfqId = req.params.rfqId as string;
 
   const [result] = await db
     .select({ rfq: rfqTable, productName: productsTable.name })
@@ -94,7 +94,7 @@ router.get("/rfq/:rfqId", requireAuth, async (req, res) => {
 
 router.put("/rfq/:rfqId", requireAuth, async (req, res) => {
   const userId = getCurrentUserId(req)!;
-  const { rfqId } = req.params;
+  const rfqId = req.params.rfqId as string;
   const { quantity, description, targetPrice } = req.body;
 
   const [rfq] = await db.select().from(rfqTable).where(and(eq(rfqTable.id, rfqId), eq(rfqTable.buyerId, userId)));
@@ -123,7 +123,7 @@ router.put("/rfq/:rfqId", requireAuth, async (req, res) => {
 });
 
 router.post("/rfq/:rfqId/quote", requireAuth, async (req, res) => {
-  const { rfqId } = req.params;
+  const rfqId = req.params.rfqId as string;
   const { quotedPrice, quotedNote, validUntil } = req.body;
 
   await db
@@ -148,7 +148,7 @@ router.post("/rfq/:rfqId/quote", requireAuth, async (req, res) => {
 
 router.post("/rfq/:rfqId/accept", requireAuth, async (req, res) => {
   const userId = getCurrentUserId(req)!;
-  const { rfqId } = req.params;
+  const rfqId = req.params.rfqId as string;
 
   await db
     .update(rfqTable)

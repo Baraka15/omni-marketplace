@@ -121,7 +121,7 @@ router.get("/products", async (req, res) => {
 });
 
 router.get("/products/:productId", async (req, res) => {
-  const { productId } = req.params;
+  const productId = req.params.productId as string;
   const [product] = await db
     .select({
       id: productsTable.id,
@@ -155,7 +155,7 @@ router.get("/products/:productId", async (req, res) => {
 });
 
 router.get("/products/:productId/inventory", async (req, res) => {
-  const { productId } = req.params;
+  const productId = req.params.productId as string;
   const [product] = await db
     .select({ stock: productsTable.stock, reserved: productsTable.reserved })
     .from(productsTable)
@@ -234,7 +234,7 @@ router.post("/products", requireAuth, async (req, res) => {
 
 router.put("/products/:productId", requireAuth, async (req, res) => {
   const userId = getCurrentUserId(req)!;
-  const { productId } = req.params;
+  const productId = req.params.productId as string;
 
   const [seller] = await db
     .select()
@@ -303,7 +303,7 @@ router.put("/products/:productId", requireAuth, async (req, res) => {
 
 router.delete("/products/:productId", requireAuth, async (req, res) => {
   const userId = getCurrentUserId(req)!;
-  const { productId } = req.params;
+  const productId = req.params.productId as string;
 
   const [seller] = await db
     .select()

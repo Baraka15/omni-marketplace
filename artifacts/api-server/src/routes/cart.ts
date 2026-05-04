@@ -107,7 +107,7 @@ router.post("/cart/items", requireAuth, async (req, res) => {
 
 router.put("/cart/items/:cartItemId", requireAuth, async (req, res) => {
   const userId = getCurrentUserId(req)!;
-  const { cartItemId } = req.params;
+  const cartItemId = req.params.cartItemId as string;
   const { quantity } = req.body as { quantity: number };
 
   const cart = await getOrCreateCart(userId);
@@ -150,7 +150,7 @@ router.put("/cart/items/:cartItemId", requireAuth, async (req, res) => {
 
 router.delete("/cart/items/:cartItemId", requireAuth, async (req, res) => {
   const userId = getCurrentUserId(req)!;
-  const { cartItemId } = req.params;
+  const cartItemId = req.params.cartItemId as string;
 
   const cart = await getOrCreateCart(userId);
   await db

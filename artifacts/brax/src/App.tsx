@@ -18,6 +18,7 @@ import RfqListPage, { NewRfqPage, RfqDetailPage } from "@/pages/rfq";
 import SellerDashboard from "@/pages/seller/dashboard";
 import SellerProductsPage, { NewProductPage, EditProductPage } from "@/pages/seller/products";
 import SellerOrdersPage from "@/pages/seller/orders";
+import StorefrontPage from "@/pages/storefront";
 
 const queryClient = new QueryClient();
 
@@ -54,25 +55,72 @@ const clerkAppearance = {
   },
   elements: {
     rootBox: "w-full flex justify-center",
-    cardBox: "bg-card rounded-xl border border-border w-[440px] max-w-full overflow-hidden shadow-2xl",
+    cardBox: "bg-white rounded-2xl border border-gray-200 w-[440px] max-w-full overflow-hidden shadow-2xl",
     card: "!shadow-none !border-0 !bg-transparent !rounded-none",
     footer: "!shadow-none !border-0 !bg-transparent !rounded-none",
+    headerTitle: "text-gray-900 font-bold text-2xl",
+    headerSubtitle: "text-gray-500",
+    formFieldLabel: "text-gray-700 font-medium",
+    formFieldInput: "!bg-gray-50 !border-gray-200 !text-gray-900 focus:!ring-primary",
+    socialButtonsBlockButton: "!bg-gray-50 !border-gray-200 !text-gray-700 hover:!bg-gray-100",
+    dividerLine: "!bg-gray-200",
+    dividerText: "!text-gray-400 !text-xs !uppercase !tracking-wider",
+    footerActionLink: "!text-primary hover:!text-primary/80",
   },
 };
 
+function AuthLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex min-h-[100dvh] bg-[#f5f5f0]">
+      <div className="hidden lg:flex lg:w-1/2 bg-card border-r border-border items-center justify-center p-12">
+        <div className="max-w-sm text-center space-y-6">
+          <div className="flex justify-center">
+            <div className="h-20 w-20 rounded-2xl bg-primary flex items-center justify-center">
+              <svg width="44" height="44" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 24L24 10L38 24L24 38L10 24Z" fill="none" stroke="white" strokeWidth="2.5" strokeLinejoin="round"/>
+                <path d="M24 10L38 24L24 38" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M18 24L24 18L30 24" fill="white" opacity="0.9"/>
+                <path d="M20 26L32 14" stroke="white" strokeWidth="2" strokeLinecap="round" opacity="0.7"/>
+              </svg>
+            </div>
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold">Lixar <span className="text-primary">Gramz</span></h2>
+            <p className="text-xs text-muted-foreground mt-1">powered by BraxAI</p>
+          </div>
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            "Move Goods. Build Wealth. Scale Africa."
+          </p>
+          <div className="space-y-3 text-left">
+            {["Real-time inventory across all listings", "Unique storefront link for every seller", "B2B sourcing with instant RFQ", "UGX, KES, TZS, NGN supported"].map((f) => (
+              <div key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                {f}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="flex-1 flex items-center justify-center px-4 py-8 bg-[#f5f5f0]">
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function SignInPage() {
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4">
+    <AuthLayout>
       <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
-    </div>
+    </AuthLayout>
   );
 }
 
 function SignUpPage() {
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4">
+    <AuthLayout>
       <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
-    </div>
+    </AuthLayout>
   );
 }
 
@@ -136,6 +184,7 @@ function ClerkProviderWithRoutes() {
               {(params) => <EditProductPage params={params as { id: string }} />}
             </Route>
             <Route path="/seller/orders" component={SellerOrdersPage} />
+            <Route path="/store/:slug" component={StorefrontPage} />
             <Route path="/sign-in/*?" component={SignInPage} />
             <Route path="/sign-up/*?" component={SignUpPage} />
             <Route component={NotFound} />

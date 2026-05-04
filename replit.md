@@ -1,4 +1,4 @@
-# BRAX Marketplace
+# Lixar Gramz — powered by BraxAI
 
 A professional, real-time e-commerce marketplace platform built with React+Vite, Express+TypeScript, PostgreSQL+Drizzle ORM, Socket.io, Clerk Auth, and Stripe+Flutterwave payment stubs.
 

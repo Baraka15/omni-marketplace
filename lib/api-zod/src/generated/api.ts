@@ -722,9 +722,12 @@ export const GetSellerProfileResponse = zod.object({
   id: zod.string(),
   userId: zod.string(),
   storeName: zod.string(),
+  storeSlug: zod.string().nullish(),
   description: zod.string(),
   logoUrl: zod.string().nullish(),
   bannerUrl: zod.string().nullish(),
+  currency: zod.string().nullish(),
+  whatsappNumber: zod.string().nullish(),
   rating: zod.number().nullish(),
   totalSales: zod.number(),
   isVerified: zod.boolean(),
@@ -738,6 +741,8 @@ export const CreateSellerProfileBody = zod.object({
   storeName: zod.string(),
   description: zod.string(),
   logoUrl: zod.string().nullish(),
+  currency: zod.string().nullish(),
+  whatsappNumber: zod.string().nullish(),
 });
 
 /**
@@ -842,13 +847,21 @@ export const ListSellerOrdersResponse = zod.object({
 export const GetSellerDashboardStatsResponse = zod.object({
   todayRevenue: zod.number(),
   todayOrders: zod.number(),
+  sevenDayRevenue: zod.number(),
+  sevenDayOrders: zod.number(),
   activeOrders: zod.number(),
   totalProducts: zod.number(),
   lowStockProducts: zod.number(),
   totalInventoryValue: zod.number(),
   pendingRfqs: zod.number(),
+  receivables: zod.number(),
+  b2bInTransit: zod.number(),
   revenueChange: zod.number().describe("Percentage change vs yesterday"),
   ordersChange: zod.number().describe("Percentage change vs yesterday"),
+  currency: zod.string().nullish(),
+  storeSlug: zod.string().nullish(),
+  storeName: zod.string().nullish(),
+  whatsappNumber: zod.string().nullish(),
 });
 
 /**
